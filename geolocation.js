@@ -110,6 +110,8 @@ var GeolocationWrapper = function() {
 
 	}
 
+	this.init();
+
 }
 
 
@@ -124,6 +126,7 @@ var BlackberryLocation = function() {
 
 	this.getCurrentPosition = function(successCallback, errorCallback, options) {
 
+		// set to autonomous mode
 		blackberry.location.setAidMode(2);
 
 		if(blackberry.location.latitude==0 && blackberry.location.longitude==0) {
@@ -147,7 +150,9 @@ var BlackberryLocation = function() {
 	 */
 	this.watchPosition = function(successCallback, errorCallback, options) {
 
-		watchID = window.setInterval(bb.getCurrentPosition, 3000, successCallback, errorCallback, options);
+		interval = (typeof options.maximumAge != 'undefined') ? options.maximumAge : 3000;
+
+		watchID = window.setInterval(bb.getCurrentPosition, interval, successCallback, errorCallback, options);
 		return watchID;		
 
 	}
