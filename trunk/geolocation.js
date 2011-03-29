@@ -90,7 +90,7 @@
 	this.watchPosition = function(successCallback, errorCallback, options) {
 
 		if(geolocation.api) {
-			geolocation.watchID = geo.api.watchPosition(successCallback, errorCallback, options);
+			geolocation.watchID = geolocation.api.watchPosition(successCallback, errorCallback, options);
 		}
 
 		return geolocation.watchID;
@@ -106,7 +106,7 @@
 	this.clearWatch = function(watchID) {
 
 		if(watchID == NULL) {
-			geolocation.api.clearWatch(geo.watchID);
+			geolocation.api.clearWatch(geolocation.watchID);
 		} else {
 			geolocation.api.clearWatch(watchID);
 		}
