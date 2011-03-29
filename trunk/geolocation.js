@@ -8,7 +8,7 @@
  * 
  * @author Manuel Bieh
  * @url http://www.manuel-bieh.de/
- * @version 1.0
+ * @version 1.0.6
  * @license http://www.gnu.org/licenses/lgpl-3.0.txt LGPL
  *
  * Date $LastChangedDate$
