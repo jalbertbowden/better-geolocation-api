@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <title>HTML5 Geolocation API Demo</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <script src="http://code.google.com/apis/gears/gears_init.js"></script>
+    <script>!window.google && document.write('<script src="gears_init.js"><\/script>');</script>
+    <!-- <script src="http://better-geolocation-api.googlecode.com/files/geolocation.js"></script> -->
+<script>
+// http://better-geolocation-api.googlecode.com/files/geolocation.js
+/**
+ * Geolocation API crossbrowser support
+ *
+ * This library provides a consistent Geolocation interface for miscellaneous 
+ * web browsers. It only supports Javascript in a web browser and is not 
+ * tested and will probably not work for use in Titanium, PhoneGap, etc. 
+ * http://www.w3.org/TR/geolocation-API/
+ * 
+ * @author Manuel Bieh
+ * @url http://www.manuel-bieh.de/
+ * @version 1.0.9
+ * @license http://www.gnu.org/licenses/lgpl-3.0.txt LGPL
+ *
+ * Date $LastChangedDate: 2011-03-29 19:47:37 +0200 (Di, 29 Mrz 2011) $
+ *
+ */
+
+
+(function() {
+
+	var geolocation = this;
+
+	this.init = function() {
+
+		try {
+
+			// Check for W3C Geolocation API standard support
+			if(typeof (navigator.geolocation) != 'undefined') {
+
+				geolocation.type = 'W3C Geolocation API';
+				geolocation.api = navigator.geolocation;
+
+			// Check for Google Gears support. gears_init.js must be included!
+			} else if(typeof (window.google) != 'undefined' &&  typeof(window.google.gears) != 'undefined') {
+
+				geolocation.type = 'Google Gears';
+				geolocation.api = google.gears.factory.create('beta.geolocation');
+
+			// Checks for native Blackberry support
+			} else if (typeof(window.blackberry) != 'undefined' && blackberry.location.GPSSupported) {
+
+				geolocation.type = 'Blackberry OS';
+				geolocation.api = new BlackberryLocation();
+
+			} else {
+
+				return false;
+
+			}
+
+			window.navigator.geolocation = geolocation.api;
+			window.navigator.geolocation['type'] = geolocation.type;
+
+			return true;
+
+		} catch(e) {
+
+			if (typeof(console) != "undefined") {
+				console.log(e);
+			}
+
+		}
+
+	}
+
+	/**
+	 * Gets the current position of the user and executes a callback function
+	 *
+	 * @param function Callback function which is executed on success
+	 * @param function Callback function which is executed on error
+	 * @param function Options
+	 * @return void
+	 */
+	this.getCurrentPosition = function(successCallback, errorCallback, options) {
+
+		if(geolocation.api) {
+			geolocation.api.getCurrentPosition(successCallback, errorCallback, options);
+		}
+
+	}
+
+	/**
+	 * Calls a callback function every time the user's position changes
+	 *
+	 * @param function Callback function which is executed on success
+	 * @param function Callback function which is executed on error
+	 * @param function Options
+	 * @return integer ID of the watchPosition callback
+	 */
+	this.watchPosition = function(successCallback, errorCallback, options) {
+
+		if(geolocation.api) {
+			geolocation.watchID = geolocation.api.watchPosition(successCallback, errorCallback, options);
+		}
+
+		return geolocation.watchID;
+
+	}
+
+	/**
+	 * Clears the watchPosition callback specified as first parameter.
+	 *
+	 * @param integer ID of the watchPosition 
+	 * @return void
+	 */
+	this.clearWatch = function(watchID) {
+
+		if(watchID == NULL) {
+			geolocation.api.clearWatch(geolocation.watchID);
+		} else {
+			geolocation.api.clearWatch(watchID);
+		}
+
+	}
+
+	this.init();
+
+})();
+
+
+
+
+/**
+ * Geolocation API wrapper for Blackberry devices
+ */
+function BlackberryLocation() {
+
+	bb = this;
+
+	this.getCurrentPosition = function(successCallback, errorCallback, options) {
+
+		// set to autonomous mode
+		blackberry.location.setAidMode(2);
+
+		if(blackberry.location.latitude==0 && blackberry.location.longitude==0) {
+
+			errorCallback.call();
+
+		} else {
+
+			//blackberry.location.onLocationUpdate(successCallback);
+			blackberry.location.refreshLocation();
+
+			ts = (parseFloat(navigator.appVersion) >= 4.6) ? new Date(blackberry.location.timestamp) : 0;
+			successCallback.call(this, {timestamp: ts, coords: {latitude: blackberry.location.latitude, longitude: blackberry.location.longitude}});
+
+		}
+
+	}
+
+	/**
+	 * watchPosition simulation for Blackberry
+	 */
+	this.watchPosition = function(successCallback, errorCallback, options) {
+
+		interval = (typeof options.maximumAge != 'undefined') ? options.maximumAge : 5000;
+
+		watchID = window.setInterval(bb.getCurrentPosition, interval, successCallback, errorCallback, options);
+		return watchID;		
+
+	}
+
+	this.clearWatch = function(watchID) {
+		window.clearInterval(watchID);
+	}
+
+}    
+</script>
+<script src="http://maps.google.com/maps/api/js?sensor=true&amp;key=ABQIAAAApI58w98iPWfY3kRwSUeY8xQSTrC-RPXcR3EIu2qCj1NIpspvxxTCTHuwjZ2LxuWy95HkN8ST5Fgp0g"></script>
+
+<script>
+
+if(navigator.geolocation) {
+	navigator.geolocation.getCurrentPosition(success, error, {enableHighAccuracy: true, maximumAge: 1000});
+} else {
+	error();
+}
+
+
+function success(position) {
+
+	alert('Your position: ' + position.coords.latitude + ', ' + position.coords.longitude);
+
+	var latlng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+
+	var options = {
+		zoom: 16,
+		center: latlng,
+		mapTypeId: google.maps.MapTypeId.ROADMAP
+	};
+
+	var map = new google.maps.Map(document.getElementById("map"), options);
+
+	var marker = new google.maps.Marker({
+		position: latlng,
+		map: map,
+		title:"Your current position"
+	});
+
+}
+
+function error() {
+	alert('No Geolocation available or position could not be determined.');
+}
+
+</script>
+
+<style>
+* {
+	margin: 0;
+	padding: 0;
+}
+
+html, body {
+	height: 100%;
+}
+
+#map {
+	height: 100%;
+	width: 100%;
+}
+</style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <p><cite><a href="http://www.manuel-bieh.de/publikationen/scripts/geolocation/demo.html">Geolocation, http://www.manuel-bieh.de/publikationen/scripts/geolocation/demo.html</a></cite></p>
+  </body>
+</html>
