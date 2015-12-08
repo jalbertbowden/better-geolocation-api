@@ -24,6 +24,6 @@ Original Demo now including in this source...
 
   
   Imported from original on SourceForge  
-  https://code.google.com/p/better-geolocation-api/
+  https://code.google.com/p/better-geolocation-api/  
   Downloads  
   https://code.google.com/p/better-geolocation-api/downloads/list
